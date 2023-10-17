@@ -12,6 +12,7 @@ import re
 import uuid
 import hashlib
 from urllib.parse import urlencode
+from decimal import Decimal
 from pyupbit.request_api import _send_get_request, _send_post_request, _send_delete_request
 
 
@@ -89,6 +90,7 @@ class Upbit:
     # 자산 
     #--------------------------------------------------------------------------
     #     전체 계좌 조회
+    # region balance
     def get_balances(self, contain_req=False):
         """
         전체 계좌 조회
@@ -130,7 +132,7 @@ class Upbit:
                     if verbose is True:
                         balance = x 
                     else:
-                        balance = float(x['balance'])
+                        balance = Decimal(x['balance'])
                     break
 
             if contain_req:
@@ -267,7 +269,7 @@ class Upbit:
             return None
     
 
-    #    개별 주문 조회 
+    #    개별 주문 조회
     def get_order(self, ticker_or_uuid, state='wait', page=1, limit=100, contain_req=False):
         """
         주문 리스트 조회
@@ -308,18 +310,17 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-
-    def get_individual_order(self, uuid, contain_req=False):
+    def get_individual_order(self, uuid: str | list[str], contain_req=False):
         """
         주문 리스트 조회
-        :param uuid: 주문 id
+        :param uuid: 주문 id (str or list)
         :param contain_req: Remaining-Req 포함여부
         :return:
         """
-        # TODO : states, uuids, identifiers 관련 기능 추가 필요
+        # TODO : states, identifiers 관련 기능 추가 필요
         try:
-            url = "https://api.upbit.com/v1/order"
-            data = {'uuid': uuid}
+            url = "https://api.upbit.com/v1/order" if isinstance(uuid, str) else "https://api.upbit.com/v1/orders"
+            data = {'uuid': uuid} if isinstance(uuid, str) else {'uuids': uuid}
             headers = self._request_headers(data)
             result = _send_get_request(url, headers=headers, data=data)
             if contain_req:
